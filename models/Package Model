@@ -1,0 +1,13 @@
+import mongoose, { Schema } from 'mongoose';
+
+const PackageSchema = new Schema({
+  name: { type: String, required: true }, // Name of the package
+  price: { type: Number, required: true }, // Price for the package
+  duration: { type: Number, required: true }, // Duration of the package (e.g., in months or days)
+  category: { type: Schema.Types.ObjectId, ref: 'Category', required: true }, // Reference to the category this package belongs to
+  createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to the admin who created this package
+}, { timestamps: true }); // Add createdAt and updatedAt fields
+
+const Package = mongoose.model('Package', PackageSchema);
+
+export default Package;
