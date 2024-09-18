@@ -43,7 +43,7 @@ export const updateCategory = async (req, res) => {
             req.params.id,
             { name, description, profilePictureUrl },
             { new: true }
-        );
+        ); 
         if (!updatedCategory) {
             return res.status(404).json({ message: 'Category not found' });
         }

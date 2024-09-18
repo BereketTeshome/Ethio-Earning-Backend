@@ -11,8 +11,8 @@ export const addPackage = async (req, res) => {
             rewardCoinETB, 
             rewardCoinUSD, 
             maxSubscribers, 
-            category, 
-            createdBy 
+            category, // the category id must be mentioned
+            createdBy // the admon user id must be mentioned
         } = req.body;
 
         const newPackage = new Package({

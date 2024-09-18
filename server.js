@@ -3,6 +3,7 @@ import cors from 'cors'
 import * as dotenv from 'dotenv'
 import connectDB from './db/connectDB.js';
 import session from 'express-session';
+import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import './strategies/google.strategy.js'
 import './strategies/local.strategy.js'
@@ -15,7 +16,8 @@ const app = express();
 
 dotenv.config()
 app.use(express.json());
- 
+
+app.use(cookieParser());  
 // Initialize Passport
 app.use(passport.initialize());
 
@@ -32,7 +34,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: "https://ethio-earning.vercel.app", // Replace with your frontend URL
+    origin: ["https://ethio-earning.vercel.app", "http://localhost:3000"],  // Replace with your frontend URL
     credentials: true, // This allows credentials to be sent
   })
 );
@@ -50,6 +52,6 @@ app.use('/api/packages', packageRoutes);
 app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }),googleAuthHandler);
 connectDB() 
 
-app.listen(PORT, () => {
+app.listen(PORT, () => { 
     console.log(`Server running on port ${PORT}`); 
 });   

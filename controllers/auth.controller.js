@@ -97,8 +97,8 @@ export const login = async (req, res, next) => {
 
       res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        // secure: process.env.NODE_ENV === 'production',
+        // sameSite: 'strict',
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -177,7 +177,7 @@ export const googleAuthHandler = async (req, res) => {
       const token = jwt.sign(
         { id: existingUser._id, email: existingUser.email, role: existingUser.role },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: process.env.JWT_EXPIRES_IN }  
       );
 
       res.cookie('jwt', token, {
