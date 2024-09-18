@@ -6,8 +6,11 @@ import session from 'express-session';
 import passport from 'passport';
 import './strategies/google.strategy.js'
 import './strategies/local.strategy.js'
-import userRouter from "./routes/user.route.js";
+import userRoutes from "./routes/user.route.js";
+import categoryRoutes from "./routes/categories.route.js"
+import packageRoutes from './routes/packageRoutes.js'; // Import the package routes
 import { googleAuthHandler } from './controllers/auth.controller.js';
+
 const app = express();
 
 dotenv.config()
@@ -27,16 +30,26 @@ app.use(passport.session());
 
 const PORT = process.env.PORT || 3000;
 
-app.use(cors()) 
+app.use(
+  cors({
+    origin: "https://ethio-earning.vercel.app", // Replace with your frontend URL
+    credentials: true, // This allows credentials to be sent
+  })
+);
 
 app.get('/',(req,res)=>{
     res.send("hello")
 })
 
-app.use("/api/users", userRouter);
+app.use("/api/users", userRoutes);
+// Use the category routes
+app.use('/api/categories', categoryRoutes);
+// Use the package routes
+app.use('/api/packages', packageRoutes);
+
 app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }),googleAuthHandler);
 connectDB() 
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`); 
 });   
