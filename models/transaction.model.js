@@ -9,7 +9,7 @@ const transactionSchema = new mongoose.Schema({
   paymentId: { type: String }, // Transaction reference or ID from Chapa/Stripe
   transactionType: {
     type: String,
-    enum: ['deposit', 'withdrawal', 'purchase'],
+    enum: ['deposit', 'withdrawal', 'purchase_package'],
     required: true, // Specifies the type of transaction
   },
   status: {

@@ -12,6 +12,7 @@ import categoryRoutes from "./routes/categories.route.js"
 import packageRoutes from './routes/packageRoutes.js'; // Import the package routes
 import { googleAuthHandler } from './controllers/auth.controller.js';
 
+
 const app = express();
 
 dotenv.config()
@@ -50,7 +51,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/packages', packageRoutes);
 
 app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }),googleAuthHandler);
-connectDB() 
+connectDB()  
 
 app.listen(PORT, () => { 
     console.log(`Server running on port ${PORT}`); 

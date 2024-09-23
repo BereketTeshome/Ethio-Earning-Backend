@@ -21,6 +21,15 @@ const UserSchema = new Schema({
   // Reference to the deposit and withdrawal history collections
   depositHistory: [{ type: Schema.Types.ObjectId, ref: 'DepositHistory' }],
   withdrawalHistory: [{ type: Schema.Types.ObjectId, ref: 'WithdrawalHistory' }],
+
+  youtubeUrl: [{ type: String }], // The URL of the YouTube account
+  telegramUrls: [{ type: String }], // Array of Telegram URLs
+  tiktokUrls: [{ type: String }],   // Array of TikTok URLs
+  instagramUrls: [{ type: String }], // Array of Instagram URLs
+  facebookUrls: [{ type: String }], // Array of Facebook URLs
+  twitterUrls: [{ type: String }], // Array of Twitter URLs
+  linkedinUrls: [{ type: String }], // Array of LinkedIn URLs
+  otherSocialMedia: { type: String }, // Optional for other platforms
 }, { timestamps: true }); // Enable automatic createdAt and updatedAt fields
 
 const User = mongoose.model("User", UserSchema);

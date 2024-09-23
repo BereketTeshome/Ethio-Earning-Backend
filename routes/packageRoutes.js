@@ -5,6 +5,8 @@ import {
     getPackageById,
     updatePackage,
     deletePackage,
+    PurchasedPackage1,
+    verify
 } from '../controllers/packageController.js'; // Import the package controller functions
 import { authenticateAdmin } from '../middleware/authMiddleware.js'; // Adjust the path as needed
 
@@ -24,5 +26,9 @@ router.put('/:id', authenticateAdmin, updatePackage);
 
 // Route to delete a package by its ID - requires admin authentication
 router.delete('/:id', authenticateAdmin, deletePackage);
+
+router.post('/purchase-package',PurchasedPackage1);
+
+router.post('/verify-payment',verify)
 
 export default router;

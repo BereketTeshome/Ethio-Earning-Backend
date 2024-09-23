@@ -99,6 +99,8 @@ export const login = async (req, res, next) => {
         httpOnly: true,
         // secure: process.env.NODE_ENV === 'production',
         // sameSite: 'strict',
+        secure: false,
+        SameSite:'strict',
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -182,8 +184,10 @@ export const googleAuthHandler = async (req, res) => {
 
       res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        // secure: process.env.NODE_ENV === 'production',
+        // sameSite: 'strict',
+        secure: false,
+        SameSite:'strict',
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -257,7 +261,7 @@ export const enable2FA = async (req, res) => {
 export const verify2FA = async (req, res) => {
   try {
     const { userId, token } = req.body;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId); 
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid user' });
@@ -267,7 +271,7 @@ export const verify2FA = async (req, res) => {
       secret: user.twoFactorSecret,
       encoding: 'base32',
       token,
-      window: 1,
+      window: 20,
     });
 
     if (isValid) {
