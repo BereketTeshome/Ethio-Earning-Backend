@@ -10,16 +10,46 @@ const PurchasedPackageSchema = new Schema({
       return this.package.maxSubscribers; // Default to package's maxSubscribers
     },
   },
+  currentViewers: { type: Number, default: 0 }, // Number of people who have viewed the content (default is 0)
+  remainingViewers: {
+    type: Number,
+    default: function() {
+      return this.package.maxViewers; // Default to package's maxViewers
+    },
+  },
   active: { type: Boolean, default: true }, // Active status (default is true)
   transaction: { type: Schema.Types.ObjectId, ref: 'Transaction' }, // Reference to the linked transaction
 }, { timestamps: true });
 
-// Pre-save hook to update 'active' field based on currentSubscribers and remainingSubscribers
-PurchasedPackageSchema.pre('save', function (next) {
-  if (this.currentSubscribers >= this.remainingSubscribers) {
-    this.active = false; // Set active to false when subscribers limit is reached
+// Pre-save hook to update 'active' field based on currentSubscribers, remainingSubscribers, and transaction status
+PurchasedPackageSchema.pre('save', async function (next) {
+  if (this.transaction) {
+    // Populate the transaction to check its status
+    const Transaction = mongoose.model('Transaction');
+    const transaction = await Transaction.findById(this.transaction).exec();
+
+    if (transaction) {
+      // Check the transaction status along with subscriber and viewer counts
+      if (
+        this.currentSubscribers >= this.remainingSubscribers && 
+        this.currentViewers >= this.remainingViewers && 
+        transaction.status === 'pending' && 
+        transaction.status === 'failed'
+      ) {
+        this.active = false; // Set active to false when conditions are met
+      } else {
+        this.active = true; // Otherwise, keep it true
+      }
+    } else {
+      this.active = false; // If no transaction found, set active to false
+    }
   } else {
-    this.active = true; // Otherwise, keep it true
+    // If there is no transaction, use the existing logic for active status
+    if (this.currentSubscribers >= this.remainingSubscribers && this.currentViewers >= this.remainingViewers) {
+      this.active = false; // Set active to false when subscribers or viewers limit is reached
+    } else {
+      this.active = true; // Otherwise, keep it true
+    }
   }
   next();
 });

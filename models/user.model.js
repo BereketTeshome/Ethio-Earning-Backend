@@ -16,13 +16,16 @@ const UserSchema = new Schema({
   profilePicture: { type: String, default: null }, // Optional profile picture field
   active: { type: Boolean, default: false }, // Active status field
   purchasedPackages: [{ type: Schema.Types.ObjectId, ref: 'UserPackage' }], // References to the bought packages
-  balance: { type: Number, default: 0 },
+   // Separate balances for ETB and USD
+   balanceETB: { type: Number, default: 0 }, // Balance in Ethiopian Birr
+   balanceUSD: { type: Number, default: 0 }, // Balance in US Dollars
 
   // Reference to the deposit and withdrawal history collections
   depositHistory: [{ type: Schema.Types.ObjectId, ref: 'DepositHistory' }],
   withdrawalHistory: [{ type: Schema.Types.ObjectId, ref: 'WithdrawalHistory' }],
 
-  youtubeUrl: [{ type: String }], // The URL of the YouTube account
+  youtubeUrl: [{ type: String }],
+  videoUrl:[{ type: String }], // The URL of the YouTube account
   telegramUrls: [{ type: String }], // Array of Telegram URLs
   tiktokUrls: [{ type: String }],   // Array of TikTok URLs
   instagramUrls: [{ type: String }], // Array of Instagram URLs

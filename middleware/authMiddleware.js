@@ -2,7 +2,8 @@ import jwt from 'jsonwebtoken';
 
 const authenticateUser = (roles) => (req, res, next) => {
   const token = req.cookies.jwt; // Get the token from cookies
-  // console.log("token",req.cookies);     
+  // console.log("token",req.cookies); 
+  // console.log("token is",token)    
   if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {

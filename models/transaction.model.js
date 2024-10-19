@@ -5,19 +5,19 @@ const transactionSchema = new mongoose.Schema({
   package: { type: mongoose.Schema.Types.ObjectId, ref: 'Package' }, // For package purchases
   amount: { type: Number, required: true }, // Amount of the transaction
   currency: { type: String, enum: ['ETB', 'USD'], required: true }, // Currency type
-  paymentMethod: { type: String, enum: ['Chapa', 'Stripe'], required: true }, // Payment processor
+  paymentMethod: { type: String, enum: ['Chapa', 'PayPal'], required: true }, // Payment processor
   paymentId: { type: String }, // Transaction reference or ID from Chapa/Stripe
   transactionType: {
     type: String,
-    enum: ['deposit', 'withdrawal', 'purchase_package'],
+    enum: ['deposit', 'withdrawal', 'purchasing_a_package'],
     required: true, // Specifies the type of transaction
   },
   status: {
-    type: String,
+    type: String,  
     enum: ['pending', 'completed', 'failed'],
     default: 'pending',
   },
-  date: { type: Date, default: Date.now }, // Transaction date
+  transactionReference: { type: String, default:'waiting' } // New field for transaction reference
 }, { timestamps: true });
 
 const Transaction = mongoose.model('Transaction', transactionSchema);

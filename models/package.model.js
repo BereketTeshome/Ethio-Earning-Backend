@@ -8,11 +8,16 @@ const PackageSchema = new Schema({
   rewardCoinETB: { type: Number, required: true }, // Reward coins based on ETB currency
   rewardCoinUSD: { type: Number, required: true }, // Reward coins based on USD currency
   maxSubscribers: { type: Number, required: true }, // Maximum number of people allowed to subscribe
-  features: [{ type: String }], // List of features unlocked with the package
+  maxViewers: { type: Number, required: true }, // Maximum number of viewers for the package
+  features: [{ 
+    type: String,
+    enum: ["youtube", "tiktok", "instagram", "facebook", "telegram", "twitter", "other social media link","your own website","Linkdin","your own video"], // Allowed values for the features field
+  }],
+  active: { type: Boolean, default: false },
   category: { type: Schema.Types.ObjectId, ref: 'Category', required: true }, // Reference to the category this package belongs to
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to the admin who created this package
-}, { timestamps: true }); 
+}, { timestamps: true });
 
-const Package = mongoose.model('Package', PackageSchema);     
+const Package = mongoose.model('Package', PackageSchema);
 
 export default Package;

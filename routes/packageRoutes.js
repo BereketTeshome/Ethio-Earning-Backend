@@ -6,11 +6,12 @@ import {
     updatePackage,
     deletePackage,
     PurchasedPackage1,
-    verify
+    verify,
+    createOrder,
+    verfiyDollarPayment
 } from '../controllers/packageController.js'; // Import the package controller functions
 import { authenticateAdmin } from '../middleware/authMiddleware.js'; // Adjust the path as needed
-
-const router = express.Router();
+const router = express.Router(); 
 
 // Route to create a new package - requires admin authentication
 router.post('/', authenticateAdmin, addPackage);
@@ -27,8 +28,12 @@ router.put('/:id', authenticateAdmin, updatePackage);
 // Route to delete a package by its ID - requires admin authentication
 router.delete('/:id', authenticateAdmin, deletePackage);
 
-router.post('/purchase-package',PurchasedPackage1);
+router.post('/etb-purchase-package',PurchasedPackage1);
 
-router.post('/verify-payment',verify)
+router.post('/etb-verify-payment',verify)
+
+router.post('/usd-purchase-package',createOrder)
+
+router.get('/complete-order',verfiyDollarPayment)
 
 export default router;
