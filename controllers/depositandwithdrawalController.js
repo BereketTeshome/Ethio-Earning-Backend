@@ -2,6 +2,7 @@ import User from '../models/user.model.js'; // Import the User model
 import Transaction from '../models/transaction.model.js';
 import {initializeChapaPayment} from '../services/initializeChapaPayment.js';
 import WithdrawalHistory from '../models/withdrawal.model.js';
+import { createPayPalOrderForDeposit} from '../services/paypal.js';
 export const depositMoneyETB = async (req, res) => {
     const { userId, amount, currency } = req.body;
 
@@ -49,7 +50,51 @@ export const depositMoneyETB = async (req, res) => {
         return res.status(500).json({ error: 'An error occurred while processing the deposit' });
     }
 };
- 
+ // Deposit money in USD
+export const depositMoneyUSD = async (req, res) => {
+    const { userId, amount, currency } = req.body;
+
+    // Input validation
+    if (!userId || !amount || !currency) {
+        return res.status(400).json({ error: 'User ID, amount, and currency are required' });
+    }
+
+    if (currency !== 'USD') {
+        return res.status(400).json({ error: 'Currency must be USD for this transaction' });
+    }
+
+    try {
+        // Fetch user details from the database
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Initialize payment (assuming a payment gateway for USD transactions)
+        const response = await createPayPalOrderForDeposit(user,amount,'deposit',currency);
+        const approvalLink = response.data.links.find(link => link.rel === 'approve').href
+
+        const transaction = new Transaction({
+            user: user._id,
+            amount,
+            currency,
+            paymentMethod: "PayPal", // Adjust this for USD transactions
+            transactionType: 'deposit',
+            paymentId: response.data.id, // PayPal/Other transaction reference
+            status: 'pending',
+        });
+
+        // Save the transaction to the database
+        await transaction.save();
+
+        // Respond with the payment checkout URL
+        return res.status(200).json({ checkout_url: approvalLink }); 
+
+    } catch (error) {
+        console.error('Payment Error:', error);
+        return res.status(500).json({ error: 'An error occurred while processing the deposit' });
+    }
+};
 // Withdraw money function
 export const withdrawMoneyETB = async (req, res) => {
     const { userId, amount, currency } = req.body;
@@ -104,6 +149,65 @@ export const withdrawMoneyETB = async (req, res) => {
             } 
           );
         await withdrawlHistory.save();  
+        return res.status(200).json({ message: 'Withdrawal initiated successfully' });
+
+    } catch (error) {
+        return res.status(500).json({ error: 'An error occurred while processing the withdrawal' });
+    }
+};
+
+// Withdraw money in USD
+export const withdrawMoneyUSD = async (req, res) => {
+    const { userId, amount, currency } = req.body;
+
+    // Input validation
+    if (!userId || !amount || !currency) {
+        return res.status(400).json({ error: 'User ID, amount, and currency are required' });
+    }
+
+    if (currency !== 'USD') {
+        return res.status(400).json({ error: 'Currency must be USD for this transaction' });
+    }
+
+    try {
+        // Fetch user details from the database
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check if the user has sufficient balance
+        if (user.balanceUSD < amount) {
+            return res.status(400).json({ error: 'Insufficient balance for withdrawal' });
+        }
+
+        // Deduct the amount from user's balance
+        user.balanceUSD -= amount;
+        await user.save(); // Update the user's balance
+
+        const transaction = new Transaction({
+            user: user._id,
+            amount,
+            currency,
+            paymentMethod: "PayPal", // Adjust this for USD transactions
+            transactionType: 'withdrawal',
+            paymentId: "manual", // PayPal/Other transaction reference
+            status: 'pending',
+        });
+
+        // Save the transaction to the database
+        await transaction.save();
+
+        const withdrawlHistory = new WithdrawalHistory({
+            user: user._id,
+            amount,
+            currency,
+            method: "manual",
+            transactionId: transaction._id,
+            feeCharge: 0,
+        });
+
+        await withdrawlHistory.save();
         return res.status(200).json({ message: 'Withdrawal initiated successfully' });
 
     } catch (error) {

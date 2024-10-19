@@ -24,7 +24,7 @@ export const createPayPalOrder = async (selectedPackage,currency) => {
         },
         data: JSON.stringify({
             intent: 'CAPTURE',
-            purchase_units: [
+            purchase_units: [ 
                 {
                     items: [
                         {
@@ -61,6 +61,47 @@ export const createPayPalOrder = async (selectedPackage,currency) => {
 
     return response
 }
+// Function to create a PayPal order
+export const createPayPalOrderForDeposit = async (user, amount, transactionType, currency) => {
+    const accessToken = await generateAccessToken();
+
+    const response = await axios({
+        url: process.env.PAYPAL_BASE_URL + '/v2/checkout/orders',
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + accessToken
+        },
+        data: JSON.stringify({
+            intent: 'CAPTURE',
+            purchase_units: [
+                {
+                    description: `${transactionType} for ${user.name || user.email}`, // Descriptive message
+                    amount: {
+                        currency_code: currency,
+                        value: amount.toFixed(2), // Format amount to 2 decimal places
+                        breakdown: {
+                            item_total: {
+                                currency_code: currency,
+                                value: amount.toFixed(2) // Total item value
+                            }
+                        }
+                    }
+                }
+            ],
+            application_context: {
+                return_url: process.env.BASE_URL + '/callback/complete-order-usd', 
+                cancel_url: `${process.env.BASE_URL}/api/paypal/cancel-order`,
+                shipping_preference: 'NO_SHIPPING',
+                user_action: 'PAY_NOW',
+                brand_name: 'manfra.io' // Customize the brand name
+            }
+        })
+    });
+
+    return response;
+};
+
 export const capturePayment = async (orderId) => {
     const accessToken = await generateAccessToken()
 

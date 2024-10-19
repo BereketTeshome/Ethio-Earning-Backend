@@ -6,7 +6,7 @@ import Transaction from '../models/transaction.model.js';
 import Chapa from 'chapa';
 import Redis from "ioredis";
 import axios from "axios"
-import { createPayPalOrder,capturePayment } from '../services/paypal.js';
+import { createPayPalOrder} from '../services/paypal.js';
 import {initializeChapaPayment} from '../services/initializeChapaPayment.js'
 // console.log(process.env.REDIS_URL)  
 
