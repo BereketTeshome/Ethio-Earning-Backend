@@ -230,7 +230,7 @@ export const PurchasedPackage1 = async(req,res)=>{
         status: 'pending',
     });
     // Save the transaction to the database
-    const savedTransaction = await transaction.save();       // Link the transaction to the purchased package
+    await transaction.save();       // Link the transaction to the purchased package
     
     // Create a new PurchasedPackage entry with initial values for subscribers and viewers
     const purchasedPackage = new PurchasedPackage({
@@ -244,9 +244,7 @@ export const PurchasedPackage1 = async(req,res)=>{
       });
 
         //   Save the purchased package to the database
-    const savedPackage = await purchasedPackage.save();
-    savedPackage.transaction = savedTransaction._id;
-    await savedPackage.save();
+     await purchasedPackage.save();
  
       // Return the Chapa checkout URL for payment
     return res.status(201).json({
@@ -313,6 +311,21 @@ export const verify = async (req, res) => {
             const response = await createPayPalOrder(selectedPackage,currency);
             const approvalLink = response.data.links.find(link => link.rel === 'approve').href
                       // Create a new PurchasedPackage entry with initial values for subscribers and viewers
+                      // Create a new Transaction entry with pending status
+                      const transaction = new Transaction({
+                          user: user._id,
+                          package: selectedPackage._id,
+                          amount: selectedPackage.priceUSD,
+                          currency,
+                          paymentMethod,
+                          transactionType: 'purchasing_a_package',
+                          paymentId: response.data.id, // Use PayPal order ID for the transaction
+                          status: 'pending',
+                      });
+              
+                      // Save the transaction to the database
+                       await transaction.save();
+
                       const purchasedPackage = new PurchasedPackage({
                         investor: user._id, 
                         package: selectedPackage._id,
@@ -320,28 +333,11 @@ export const verify = async (req, res) => {
                         remainingSubscribers: selectedPackage.maxSubscribers, // Package's max subscribers
                         currentViewers: 0, // Initial value for viewers
                         remainingViewers: selectedPackage.maxViewers, // Package's max viewers
+                        transaction: transaction._id
                     });
             
                     // Save the purchased package to the database
-                    const savedPackage = await purchasedPackage.save();
-            // Create a new Transaction entry with pending status
-            const transaction = new Transaction({
-                user: user._id,
-                package: selectedPackage._id,
-                amount: selectedPackage.priceUSD,
-                currency,
-                paymentMethod,
-                transactionType: 'purchasing_a_package',
-                paymentId: response.data.id, // Use PayPal order ID for the transaction
-                status: 'pending',
-            });
-    
-            // Save the transaction to the database
-            const savedTransaction = await transaction.save();
-    
-            // Link the transaction to the purchased package
-            savedPackage.transaction = savedTransaction._id;
-            await savedPackage.save();
+                    await purchasedPackage.save();
     
 
             res.status(201).json({ approvalLink }); // Send back the approval link

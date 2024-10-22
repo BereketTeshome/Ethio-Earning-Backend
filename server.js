@@ -13,6 +13,9 @@ import packageRoutes from './routes/packageRoutes.js'; // Import the package rou
 import depositeandwithdraw from './routes/depositandwithdraw.route.js'; 
 import paymentCallbackRouteForETB from './routes/paymentCallbackForETB.route.js'; // Import the payment callback route
 import paymentCallbackRouteForUSD from './routes/paymentCallbackForUSD.route.js';
+import purchasedPackageRoutes from './routes/purchasedPackageRoutes.js';
+import transactionRoutes from './routes/transactionRoutes.js';
+  
 const app = express();
 
 dotenv.config()
@@ -49,6 +52,10 @@ app.use("/auth/", authRoutes);
 app.use('/api/categories', categoryRoutes);
 // Use the package routes
 app.use('/api/packages', packageRoutes);
+// Add the purchased package routes
+app.use('/api/purchased-packages', purchasedPackageRoutes);
+// Add the transaction routes
+app.use('/api/transactions', transactionRoutes);
 
 app.use('/callback',paymentCallbackRouteForUSD)
 

@@ -6,14 +6,14 @@ const PurchasedPackageSchema = new Schema({
   currentSubscribers: { type: Number, default: 0 }, // Number of people who have subscribed (default is 0)
   remainingSubscribers: {
     type: Number,
-    default: function() {
+    default: function () {
       return this.package.maxSubscribers; // Default to package's maxSubscribers
     },
   },
   currentViewers: { type: Number, default: 0 }, // Number of people who have viewed the content (default is 0)
   remainingViewers: {
     type: Number,
-    default: function() {
+    default: function () {
       return this.package.maxViewers; // Default to package's maxViewers
     },
   },
@@ -29,27 +29,19 @@ PurchasedPackageSchema.pre('save', async function (next) {
     const transaction = await Transaction.findById(this.transaction).exec();
 
     if (transaction) {
-      // Check the transaction status along with subscriber and viewer counts
-      if (
-        this.currentSubscribers >= this.remainingSubscribers && 
-        this.currentViewers >= this.remainingViewers && 
-        transaction.status === 'pending' && 
-        transaction.status === 'failed'
-      ) {
-        this.active = false; // Set active to false when conditions are met
+      // Set active to false if the transaction is pending or failed
+      if (transaction.status === 'pending' || transaction.status === 'failed') {
+        this.active = false;
       } else {
-        this.active = true; // Otherwise, keep it true
+        // Set active to false only when both subscriber and viewer limits are reached
+        this.active = !(this.currentSubscribers >= this.remainingSubscribers && this.currentViewers >= this.remainingViewers);
       }
     } else {
       this.active = false; // If no transaction found, set active to false
     }
   } else {
-    // If there is no transaction, use the existing logic for active status
-    if (this.currentSubscribers >= this.remainingSubscribers && this.currentViewers >= this.remainingViewers) {
-      this.active = false; // Set active to false when subscribers or viewers limit is reached
-    } else {
-      this.active = true; // Otherwise, keep it true
-    }
+    // If there is no transaction, set active to false without checking subscriber/viewer limits
+    this.active = false;
   }
   next();
 });

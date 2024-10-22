@@ -2,6 +2,7 @@
 import User from '../models/user.model.js'; // Import the User model
 import Transaction from '../models/transaction.model.js';
 import DepositHistory from '../models/depositeHistory.model.js'
+import PurchasedPackage from '../models/purchasedPackage.model.js'; // Import the PurchasedPackage model
 import express from 'express';
 import crypto from 'crypto'; 
 const router = express.Router();
@@ -44,8 +45,19 @@ router.post('/callback', async (req, res) => {
             }
             else if(transaction.transactionType === 'purchasing_a_package')
             {
+                const purchasedPackage = await PurchasedPackage.findOne({ transaction: transaction._id });
+                if (purchasedPackage) {
+                    purchasedPackage.active = true;
+                    await purchasedPackage.save();
+                    console.log("Purchased package has been activated.");
+                } else {
+                    console.error("Purchased package not found for this transaction.");
+                    return res.status(404).json({ error: 'Purchased package not found' });
+                }
+
                 console.log("Purchasing a package transaction processed successfully.");
                 return res.sendStatus(200); // Return response and end request
+
             }
             // Save the updated user
             await foundUser.save();

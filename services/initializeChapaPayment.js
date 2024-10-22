@@ -20,7 +20,7 @@ export const initializeChapaPayment = async (user, amount, transactionType = 'de
             email: user.email,
             first_name: user.name.split(" ")[0] || 'First Name',
             last_name: user.name.split(" ")[1] || 'Last Name',
-            callback_url: 'https://25f4-196-190-62-167.ngrok-free.app/payment/callback', // Replace with your actual callback URL
+            callback_url: process.env.Chapa_CallBack_URL + '/payment/callback', // Replace with your actual callback URL
             customization: {
                 title: `${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} ${currency}`,
                 description: `${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} of ${currency} ${amount}` 
