@@ -11,7 +11,7 @@ export const demoController = async (req,res) =>{
 // Register User
 export const register = async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name,role } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -23,16 +23,15 @@ export const register = async (req, res) => {
       secret: secret.base32,
       encoding: 'base32',
     });
-
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
+      role,
       name,
       email,
       password: hashedPassword,
       twoFactorSecret: secret.base32,
     });
     await newUser.save();
-
     await transporter.sendMail({
       from: `"ETHIO EARNING" <${process.env.EMAIL_SENDER_ADDRESS}>`,
       to: newUser.email,
@@ -42,7 +41,7 @@ export const register = async (req, res) => {
 
     res.status(201).json({ message: 'Verification code has been sent to your email address' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error' ,error});
   }
 };
 
@@ -50,20 +49,18 @@ export const register = async (req, res) => {
 export const activateTheUserAccount = async (req, res) => {
   try {
     const { userEmail, token } = req.body;
-    const user = await User.findOne({ email: userEmail }); 
-
+    const user = await User.findOne({ email: userEmail });   
     if (!user) {
       return res.status(400).json({ message: 'Invalid user' });
     }
-
+ 
     const isValid = speakeasy.totp.verify({
       secret: user.twoFactorSecret,
       encoding: 'base32',
       token,
-      window: 20,
+      window: 60,     
     });
-
-    if (isValid) {
+    if (isValid) { 
       user.active = true;
       await user.save();
       res.json({ message: '2FA verified and account activated' });
@@ -96,8 +93,10 @@ export const login = async (req, res, next) => {
 
       res.cookie('jwt', token, {
         httpOnly: true,
+        // secure: process.env.NODE_ENV === 'production',
+        // sameSite: 'strict',
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        SameSite:'None',
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -107,6 +106,25 @@ export const login = async (req, res, next) => {
       });
     });
   })(req, res, next);
+};
+
+// Logout
+export const logout = async (req, res) => {
+  // Clear the JWT cookie
+  res.clearCookie('jwt', {
+    httpOnly: true,
+    secure: false, // Set to true if you're using HTTPS in production
+    sameSite: 'strict',
+  });
+
+  // Optionally, you can log out the user from the session
+  req.logout(function (err) {
+    if (err) {
+      return res.status(500).json({ message: 'Error during logout' });
+    }
+    
+    res.status(200).json({ message: 'Logout successful' });
+  });
 };
 
 // Forgot Password
@@ -140,17 +158,15 @@ export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
     if (typeof decoded === 'object' && 'id' in decoded) {
       const userId = decoded.id;
       const user = await User.findById(userId);
-
       if (!user) {
         return res.status(400).json({ message: 'Invalid token or user no longer exists' });
       }
-
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      user.password = hashedPassword;
+      
+      const hashedPassword = await bcrypt.hash(newPassword, 10);  
+      user.password = hashedPassword; 
       await user.save();
 
       res.status(200).json({ message: 'Password reset successful, you can now log in with your new password' });
@@ -176,13 +192,15 @@ export const googleAuthHandler = async (req, res) => {
       const token = jwt.sign(
         { id: existingUser._id, email: existingUser.email, role: existingUser.role },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: process.env.JWT_EXPIRES_IN }  
       );
 
       res.cookie('jwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        // secure: process.env.NODE_ENV === 'production',
+        // sameSite: 'strict',
+        secure: false,
+        SameSite:'strict',
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -200,7 +218,7 @@ export const googleAuthHandler = async (req, res) => {
         email,
         googleId,
         profilePicture,
-        role: 'user',
+        role: 'admin',
         active: true,
       });
 
@@ -256,7 +274,7 @@ export const enable2FA = async (req, res) => {
 export const verify2FA = async (req, res) => {
   try {
     const { userId, token } = req.body;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId); 
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid user' });
@@ -266,7 +284,7 @@ export const verify2FA = async (req, res) => {
       secret: user.twoFactorSecret,
       encoding: 'base32',
       token,
-      window: 1,
+      window: 20,
     });
 
     if (isValid) {

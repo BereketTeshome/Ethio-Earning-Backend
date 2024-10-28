@@ -10,23 +10,24 @@ passport.use(
       clientID: process.env.ClientID,  // Add your Google client ID
       clientSecret: process.env.ClientSecret, // Add your Google client secret
       callbackURL: process.env.CallBackURL  // Define your callback URL
-    },
+    }, 
     async (accessToken, refreshToken, profile, done) => { 
       try {
+        console.log("accessToken",accessToken)   
         // Check if the user already exists
         let user = await User.findOne({ googleId: profile.id });
 
         if (!user) {
           // If the user doesn't exist, create a new user
           user = new User({
-            googleId: profile.id,
+            googleId: profile.id, 
             email: profile.emails[0].value,
-            name: profile.displayName,
+            name: profile.displayName, 
             profilePicture: profile.photos[0].value
           });
           await user.save();
         }
-
+ 
         return done(null, user);
       } catch (error) {
         return done(error, false);
